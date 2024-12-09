@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project88</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: monospace;
+            background: #00091a;
+            color: #67e8f9;
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 4rem;
+            padding-top: 5rem;
+            margin: 0;
+            letter-spacing: 0.2em;
+            background: linear-gradient(90deg, #67e8f9, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(6,182,212,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .menu {
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .menu-item {
+            margin: 1rem 0;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            color: #67e8f9;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover {
+            border-color: #67e8f9;
+            background: rgba(103, 232, 249, 0.1);
+            transform: translateX(10px);
+        }
+
+        .section {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            background: rgba(0, 13, 38, 0.95);
+            border: 1px solid #67e8f9;
+            padding: 2rem;
+            z-index: 100;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(103, 232, 249, 0.2);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            border: 1px solid #67e8f9;
+            color: #67e8f9;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .terminal-output {
+            background: rgba(103, 232, 249, 0.1);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 3px solid #67e8f9;
+            font-family: monospace;
+        }
+
+        .terminal-input {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(103, 232, 249, 0.1);
+            border: 1px solid #67e8f9;
+            color: #67e8f9;
+            font-family: monospace;
+        }
+
+        .archive-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            border: 1px solid rgba(103, 232, 249, 0.3);
+            transition: all 0.3s;
+        }
+
+        .archive-item:hover {
+            background: rgba(103, 232, 249, 0.1);
+            border-color: #67e8f9;
+        }
+
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .token-card {
+            border: 1px solid #67e8f9;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .token-card:hover {
+            background: rgba(103, 232, 249, 0.1);
+            transform: translateY(-5px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    <div class="content">
+        <h1 class="title">PROJECT88</h1>
+        <div class="menu">
+            <div class="menu-item" onclick="showSection('simulation')">ENTER THE SIMULATION</div>
+            <div class="menu-item" onclick="showSection('archive')">ARCHIVE ACCESS</div>
+            <div class="menu-item" onclick="showSection('terminal')">CLASSIC TERMINAL</div>
+            <div class="menu-item" onclick="showSection('token')">MEMETIC TOKEN</div>
+        </div>
+    </div>
+
+    <div id="simulation" class="section">
+        <div class="close-btn" onclick="hideSection('simulation')">×</div>
+        <h2>Virtual Environment</h2>
+        <div id="sim-output" class="terminal-output">
+            > Initializing neural interface...
+        </div>
+        <button onclick="startSimulation()" class="menu-item">Start Simulation</button>
+    </div>
+
+    <div id="archive" class="section">
+        <div class="close-btn" onclick="hideSection('archive')">×</div>
+        <h2>Classified Archives</h2>
+        <div class="archive-item" onclick="viewArchive('origins')">Project Origins (2085)</div>
+        <div class="archive-item" onclick="viewArchive('iterations')">Failed Iterations (1-87)</div>
+        <div class="archive-item" onclick="viewArchive('protocols')">Neural Protocols</div>
+        <div id="archive-content" class="terminal-output"></div>
+    </div>
+
+    <div id="terminal" class="section">
+        <div class="close-btn" onclick="hideSection('terminal')">×</div>
+        <h2>System Terminal</h2>
+        <div id="terminal-output" class="terminal-output">Project88> _</div>
+        <input type="text" class="terminal-input" onkeypress="handleTerminal(event)" placeholder="Enter command...">
+    </div>
+
+    <div id="token" class="section">
+        <div class="close-btn" onclick="hideSection('token')">×</div>
+        <h2>Memetic Tokens</h2>
+        <div class="token-grid">
+            <div class="token-card" onclick="selectToken('alpha')">
+                <h3>Alpha Token</h3>
+                <p>Reality Anchor</p>
+            </div>
+            <div class="token-card" onclick="selectToken('beta')">
+                <h3>Beta Token</h3>
+                <p>Memory Shard</p>
+            </div>
+            <div class="token-card" onclick="selectToken('gamma')">
+                <h3>Gamma Token</h3>
+                <p>Time Fragment</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const chars = '01';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        ctx.font = `${fontSize}px monospace`;
+
+        function matrix() {
+            ctx.fillStyle = 'rgba(0, 9, 26, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0a3d62';
+            drops.forEach((y, i) => {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                const x = i * fontSize;
+                ctx.fillText(char, x, y * fontSize);
+                
+                if (y * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            });
+        }
+
+        setInterval(matrix, 50);
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(id).classList.add('active');
+        }
+
+        function hideSection(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function startSimulation() {
+            const output = document.getElementById('sim-output');
+            const steps = [
+                'Initializing neural interface...',
+                'Establishing quantum connection...',
+                'Loading virtual environment...',
+                'Neural handshake complete.',
+                'Welcome to Project88'
+            ];
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < steps.length) {
+                    output.innerHTML += `<br>> ${steps[i]}`;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        function viewArchive(type) {
+            const content = document.getElementById('archive-content');
+            const archives = {
+                origins: 'Project initiated in 2085. Primary goal: neural interface development.',
+                iterations: 'Iterations 1-87 failed due to quantum decoherence.',
+                protocols: 'Neural protocols v3.2 currently active. Status: STABLE'
+            };
+            content.innerHTML = archives[type];
+        }
+
+        function handleTerminal(event) {
+            if (event.key === 'Enter') {
+                const input = event.target.value;
+                const output = document.getElementById('terminal-output');
+                output.innerHTML += `<br>Project88> ${input}`;
+                
+                if (input === 'help') {
+                    output.innerHTML += '<br>Available commands: help, status, clear';
+                } else if (input === 'status') {
+                    output.innerHTML += '<br>System Status: ONLINE';
+                } else if (input === 'clear') {
+                    output.innerHTML = 'Project88> _';
+                }
+                
+                event.target.value = '';
+            }
+        }
+
+        function selectToken(type) {
+            const tokens = {
+                alpha: 'Reality Anchor activated. Stabilizing quantum field...',
+                beta: 'Memory Shard accessed. Loading neural patterns...',
+                gamma: 'Time Fragment initialized. Temporal shift detected...'
+            };
+            alert(tokens[type]);
+        }
+    </script>
+</body>
+</html>
